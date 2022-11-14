@@ -1,36 +1,45 @@
 package com.example.myapplication
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+
+import android.content.Context
+
+import android.os.Build
 import android.os.Bundle
+
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Spinner
+
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentResultListener
+
 import com.android.volley.Request
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+
 import org.json.JSONObject
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import kotlin.coroutines.coroutineContext
+
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.Builder
+import androidx.core.app.NotificationManagerCompat
+
 
 
 class BlankFragment2 : Fragment(){
 
 
 
-
+    val channelId="101";
+    val notificationId=101;
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+        }
     }
 
 
@@ -51,6 +60,7 @@ class BlankFragment2 : Fragment(){
         val cityvalue = GlobalClass.city;
     if (now != cityvalue){
         searchByName(cityvalue);
+
     }
     }
 
@@ -100,6 +110,10 @@ class BlankFragment2 : Fragment(){
                 cloud?.text="$cloudval %";
                 wind?.text="$windval km/h";
                 Toast.makeText(requireActivity(),"siuu",Toast.LENGTH_SHORT).show()
+
+
+                    sendNotification()
+
             },
             { Toast.makeText(requireActivity(),"Error",Toast.LENGTH_SHORT).show()},
         )
@@ -108,6 +122,40 @@ class BlankFragment2 : Fragment(){
     }
 
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel() {
+
+
+        val name = "title"
+        val desc = "desc"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel =NotificationChannel(channelId,name,importance).apply {
+            description = desc
+        }
+        val notificationManager:NotificationManager = activity?.getSystemService(Context.NOTIFICATION_SERVICE)as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+
+    private fun sendNotification() {
+        val nameCity = view?.findViewById<TextView>(R.id.cityName);
+        val nameCityval = nameCity?.getText();
+        val degree = view?.findViewById<TextView>(R.id.cityDegrees);
+        val degreeval = degree?.getText();
+        val builder= Builder(requireActivity(),channelId)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Clima Saber Hacer")
+            .setContentText("$nameCityval \n $degreeval")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        with(NotificationManagerCompat.from(requireActivity())){
+            notify(notificationId,builder.build())
+        }
+
+
+
+    }
 
 
 }
